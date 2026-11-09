@@ -9,7 +9,7 @@ from curacusto.storage import Cache
 
 st.set_page_config(
     page_title="Cura Custo",
-    page_icon="ðŸ’Š",
+    page_icon="💊",
     layout="wide",
 )
 
@@ -35,14 +35,14 @@ def format_brl(value: float) -> str:
 
 def render_sidebar() -> None:
     with st.sidebar:
-        st.header("ConfiguraÃ§Ã£o")
+        st.header("Configuração")
         st.write("UF: **MS**")
         st.write("ICMS: **17%**")
-        st.write("FarmÃ¡cias: **Pague Menos** e **Pacheco**")
+        st.write("Farmácias: **Pague Menos** e **Pacheco**")
         st.write(f"Cache: **{CACHE_TTL_HOURS} h**")
         st.divider()
         st.caption("Fontes: CMED/ANVISA e RENAME 2024")
-        st.caption("Projeto de extensÃ£o â€” ODS 3 e ODS 10")
+        st.caption("Projeto de extensão — ODS 3 e ODS 10")
 
 
 def render_summary(resultados) -> None:
@@ -69,14 +69,14 @@ def render_summary(resultados) -> None:
 
     if pagos:
         st.caption(
-            "Economia calculada em relaÃ§Ã£o ao PMC (teto legal), nÃ£o ao preÃ§o de mercado."
+            "Economia calculada em relação ao PMC (teto legal), não ao preço de mercado."
         )
 
     if alertas:
         st.warning(f"{alertas} oferta(s) acima do PMC. Confira os detalhes.")
     if nao_identificados:
         st.warning(
-            f"{nao_identificados} item(ns) nÃ£o identificado(s). Revise a grafia."
+            f"{nao_identificados} item(ns) não identificado(s). Revise a grafia."
         )
 
 
@@ -84,11 +84,11 @@ def render_table(resultados) -> None:
     rows = []
     for item in resultados:
         if item.in_rename:
-            onde = "SUS / FarmÃ¡cia Popular"
+            onde = "SUS / Farmácia Popular"
         elif item.best_offer:
             onde = item.best_offer.store
         else:
-            onde = "â€”"
+            onde = "—"
 
         if item.above_pmc:
             status = "Acima do PMC"
@@ -97,16 +97,16 @@ def render_table(resultados) -> None:
         elif item.substancia:
             status = "OK"
         else:
-            status = "NÃ£o identificado"
+            status = "Não identificado"
 
         rows.append(
             {
                 "Medicamento": item.text,
-                "PrincÃ­pio ativo (DCB)": item.substancia or "â€”",
+                "Princípio ativo (DCB)": item.substancia or "—",
                 "Onde obter": onde,
-                "PMC MS": "â€”" if item.in_rename or not item.pmc_ms else format_brl(item.pmc_ms),
-                "Melhor preÃ§o": (
-                    format_brl(item.best_offer.price) if item.best_offer else "â€”"
+                "PMC MS": "—" if item.in_rename or not item.pmc_ms else format_brl(item.pmc_ms),
+                "Melhor preço": (
+                    format_brl(item.best_offer.price) if item.best_offer else "—"
                 ),
                 "Status": status,
             }
@@ -118,17 +118,17 @@ def render_table(resultados) -> None:
 def render_details(resultados) -> None:
     st.subheader("Detalhamento")
     for item in resultados:
-        with st.expander(f"{item.text} â€” {item.substancia or 'nÃ£o identificado'}"):
+        with st.expander(f"{item.text} — {item.substancia or 'não identificado'}"):
             if item.in_rename:
-                st.success("DisponÃ­vel gratuitamente pelo SUS (RENAME).")
+                st.success("Disponível gratuitamente pelo SUS (RENAME).")
 
             if item.offers:
                 tabela = pd.DataFrame(
                     [
                         {
-                            "FarmÃ¡cia": offer.store,
-                            "PreÃ§o": format_brl(offer.price),
-                            "ApresentaÃ§Ã£o": offer.presentation,
+                            "Farmácia": offer.store,
+                            "Preço": format_brl(offer.price),
+                            "Apresentação": offer.presentation,
                             "Link": offer.url,
                         }
                         for offer in sorted(
@@ -144,12 +144,12 @@ def render_details(resultados) -> None:
 
 def main() -> None:
     st.title("Cura Custo")
-    st.caption("Comparador de preÃ§os e otimizador de receitas mÃ©dicas")
+    st.caption("Comparador de preços e otimizador de receitas médicas")
 
     cmed, rename = load_bases()
     if cmed is None:
         st.error(
-            "Bases nÃ£o encontradas. Execute `python -m scripts.atualizar_bases`."
+            "Bases não encontradas. Execute `python -m scripts.atualizar_bases`."
         )
         return
 
@@ -169,7 +169,7 @@ def main() -> None:
 
     if enviado and texto.strip():
         itens = [linha.strip() for linha in texto.splitlines() if linha.strip()]
-        with st.spinner("Consultando bases e farmÃ¡cias..."):
+        with st.spinner("Consultando bases e farmácias..."):
             st.session_state["resultados"] = analyze_recipe(
                 itens,
                 catalog,
@@ -191,10 +191,9 @@ def main() -> None:
 
     st.divider()
     st.caption(
-        "Ferramenta informativa. NÃ£o substitui a orientaÃ§Ã£o mÃ©dica ou farmacÃªutica."
+        "Ferramenta informativa. Não substitui a orientação médica ou farmacêutica."
     )
 
 
 if __name__ == "__main__":
     main()
-
