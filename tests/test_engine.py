@@ -4,6 +4,7 @@ import pandas as pd
 
 from curacusto.engine import (
     analyze_item,
+    offer_matches,
     pack_size,
     pmc_for_substance,
     rename_match,
@@ -79,6 +80,59 @@ class FakeCache:
 
     def get_offers(self, store, term):
         return []
+
+
+def _offer(nome):
+    return Offer(
+        store="Teste",
+        search_term="teste",
+        product_name=nome,
+        brand=None,
+        presentation=nome,
+        price=1.0,
+        list_price=None,
+        available=True,
+        url=None,
+        collected_at=datetime.now(timezone.utc),
+    )
+
+
+def test_filtro_relevancia():
+    from curacusto.normalizer import Catalog
+
+    cmed = pd.DataFrame(
+        {
+            "substancia": [
+                "DICLORIDRATO DE CETIRIZINA",
+                "DICLORIDRATO DE LEVOCETIRIZINA",
+                "CITRATO DE ORFENADRINA",
+                "CITRATO DE ORFENADRINA;CAFEÍNA ANIDRA;DIPIRONA MONOIDRATADA",
+            ],
+            "produto": ["REACTINE", "ZINA", "ORFENAD", "DORFLEX"],
+        }
+    )
+    catalog = Catalog(cmed)
+
+    assert offer_matches(
+        catalog,
+        _offer("Reactine 10mg"),
+        "DICLORIDRATO DE CETIRIZINA",
+    )
+    assert not offer_matches(
+        catalog,
+        _offer("Levocetirizina 5mg"),
+        "DICLORIDRATO DE CETIRIZINA",
+    )
+    assert not offer_matches(
+        catalog,
+        _offer("Dorflex 300mg"),
+        "CITRATO DE ORFENADRINA",
+    )
+    assert offer_matches(
+        catalog,
+        _offer("Orfenadrina 35mg"),
+        "CITRATO DE ORFENADRINA",
+    )
 
 
 def test_alerta_quando_preco_supera_pmc():

@@ -134,6 +134,15 @@ def pmc_for_offer(cmed, substancia: str, offer):
     return float(rows["pmc_ms"].max())
 
 
+def offer_matches(catalog, offer, target_substancia: str) -> bool:
+    target_key = search_term(target_substancia)
+    text = f"{offer.product_name or ''} {offer.presentation or ''}"
+    match = catalog.identify(text)
+    if match:
+        return search_term(match["substancia"]) == target_key
+    return bool(re.search(rf"\b{re.escape(target_key)}\b", normalize_text(text)))
+
+
 def rename_match(rename_df, substancia: str) -> bool:
     known = {normalize_text(value) for value in rename_df["dcb"].dropna().unique()}
     parts = [normalize_text(part) for part in re.split(r"[;/+]", substancia)]
@@ -171,6 +180,8 @@ def analyze_item(
                 except Exception:
                     store_offers = cache.get_offers(store, term)
             offers.extend(store_offers)
+
+    offers = [offer for offer in offers if offer_matches(catalog, offer, substancia)]
 
     priced = [offer for offer in offers if offer.price]
     best = min(priced, key=lambda offer: offer.price, default=None)
